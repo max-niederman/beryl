@@ -1,4 +1,12 @@
 # Beryl
+
+[![Crates.io](https://img.shields.io/crates/v/beryl)](https://crates.io/crates/beryl)
+[![Documentation](https://img.shields.io/docsrs/beryl)](https://docs.rs/beryl)
+[![Build](https://img.shields.io/github/workflow/status/max-niederman/beryl/Build)](https://github.com/max-niederman/beryl/actions/workflows/build.yml)
+[![Tests](https://img.shields.io/github/workflow/status/max-niederman/beryl/Test?label=tests)](https://github.com/max-niederman/beryl/actions/workflows/test.yml)
+[![Test Coverage](https://img.shields.io/coveralls/github/max-niederman/beryl)](https://coveralls.io/github/max-niederman/beryl)
+[![License](https://img.shields.io/crates/l/beryl)](./LICENSE.md)
+
 Beryl is a format for unique identifiers. This crate implements utilities for generating these identifiers and splitting them into their component parts.
 
 ## Crystals
