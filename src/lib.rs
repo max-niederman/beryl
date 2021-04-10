@@ -3,7 +3,7 @@
 //! format.
 //!
 //! ## Crystals
-//! Beryl identifiers, or [`Crystal`]s, are encoded into 64 bits as follows:
+//! Beryl identifiers, or Crystals, are encoded into 64 bits as follows:
 //! - **Generator ID**: 12-bit unsigned integer identifying the Crystal's generator. Further segmentation is
 //! left to the application, as conflicts will not occur unless the scheme is changed unevenly over
 //! less than a millisecond.
