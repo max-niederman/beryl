@@ -24,7 +24,7 @@ use std::time::{Duration, SystemTime};
 /// Enumeration of Crystal parts
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CrystalPart {
-    GeneratorID,
+    GeneratorId,
     Counter,
     Timestamp,
 }
@@ -41,7 +41,7 @@ impl fmt::Display for BerylError {
         match self {
             BerylError::PartOutOfBounds(part) => {
                 writeln!(f, "Crystal part was out of bounds: {:?}", part)
-            },
+            }
             BerylError::GeneratorExhausted => {
                 writeln!(f, "Generator ran out of Crystals for this millisecond")
             }
@@ -76,7 +76,7 @@ impl Crystal {
         Ok(Self::from_parts_unchecked(
             (generator <= 0xFFF)
                 .then(|| generator)
-                .ok_or(BerylError::PartOutOfBounds(CrystalPart::GeneratorID))?,
+                .ok_or(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))?,
             (counter <= 0x3FF)
                 .then(|| counter)
                 .ok_or(BerylError::PartOutOfBounds(CrystalPart::Counter))?,
@@ -137,7 +137,7 @@ impl From<Crystal> for u64 {
 impl From<i64> for Crystal {
     fn from(raw: i64) -> Self {
         Self {
-            crystal: unsafe { std::mem::transmute(raw) }
+            crystal: unsafe { std::mem::transmute(raw) },
         }
     }
 }
@@ -166,7 +166,7 @@ impl Generator {
         Ok(Self {
             id: (id < 0x1000)
                 .then(|| id)
-                .ok_or(BerylError::PartOutOfBounds(CrystalPart::GeneratorID))?,
+                .ok_or(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))?,
             epoch,
             count: u16::MAX,
             last_timestamp: now(epoch),
@@ -181,10 +181,10 @@ impl Generator {
     /// ```
     /// # use beryl::Generator;
     /// use std::time::SystemTime;
-    /// 
+    ///
     /// # fn main() -> std::io::Result<()> {
     /// let mut gen = Generator::new(0, SystemTime::UNIX_EPOCH)?;
-    /// 
+    ///
     /// // Generate a few snowflakes
     /// for _ in 0..2 {
     ///     println!("{:?}", gen.generate());
@@ -272,7 +272,10 @@ mod tests {
         #[test]
         fn converts_i64() {
             assert_eq!(i64::from(Crystal::from_parts(0, 0, 0).unwrap()), 0i64);
-            assert_eq!(i64::from(Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF).unwrap()), -1i64);
+            assert_eq!(
+                i64::from(Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF).unwrap()),
+                -1i64
+            );
 
             // Conversion should be transitive by bit representation
             assert_eq!(Crystal::from(-1i64), Crystal::from(u64::MAX));
@@ -293,7 +296,7 @@ mod tests {
             Crystal::from_parts(u16::MAX, u16::MAX, u64::MAX).unwrap_err();
             assert_eq!(
                 Crystal::from_parts(0x1000, 0, 0),
-                Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorID))
+                Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))
             );
             assert_eq!(
                 Crystal::from_parts(0, 0x400, 0),
@@ -305,14 +308,20 @@ mod tests {
             );
 
             // Should not be out of bounds
-            assert_eq!(Crystal::from_parts(0, 0, 0), Ok(Crystal { crystal: u64::MIN }));
-            assert_eq!(Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF), Ok(Crystal { crystal: u64::MAX }));
+            assert_eq!(
+                Crystal::from_parts(0, 0, 0),
+                Ok(Crystal { crystal: u64::MIN })
+            );
+            assert_eq!(
+                Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF),
+                Ok(Crystal { crystal: u64::MAX })
+            );
         }
     }
 
     mod generator {
-        use crate::{Generator, BerylError, CrystalPart};
-        use std::time::{SystemTime, Duration};
+        use crate::{BerylError, CrystalPart, Generator};
+        use std::time::{Duration, SystemTime};
 
         #[test]
         fn initializes() {
@@ -320,8 +329,14 @@ mod tests {
             assert_eq!(g.count.wrapping_add(1), 0);
 
             // Should fail to initialize
-            assert_eq!(Generator::new(u16::MAX, SystemTime::UNIX_EPOCH), Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorID)));
-            assert_eq!(Generator::new(0x1000, SystemTime::UNIX_EPOCH), Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorID)));
+            assert_eq!(
+                Generator::new(u16::MAX, SystemTime::UNIX_EPOCH),
+                Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))
+            );
+            assert_eq!(
+                Generator::new(0x1000, SystemTime::UNIX_EPOCH),
+                Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))
+            );
         }
 
         #[test]
@@ -331,7 +346,7 @@ mod tests {
             let first = g.try_generate().unwrap(); // Safe because we know the `count` is at 0
             assert_eq!(first.generator(), 0);
             assert_eq!(first.counter(), 0);
-            
+
             let second = g.try_generate().unwrap();
             assert_eq!(second.counter(), 1);
 
@@ -351,7 +366,10 @@ mod tests {
                 }
             }
 
-            assert_eq!(exhausted_gen().try_generate(), Err(BerylError::GeneratorExhausted));
+            assert_eq!(
+                exhausted_gen().try_generate(),
+                Err(BerylError::GeneratorExhausted)
+            );
             assert_eq!(exhausted_gen().generate_block_spin().counter(), 0);
             assert_eq!(exhausted_gen().generate_block_sleep().counter(), 0);
             assert_eq!(exhausted_gen().generate_unchecked().counter(), 0);
