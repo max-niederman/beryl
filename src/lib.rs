@@ -4,10 +4,10 @@
 //!
 //! ## Crystals
 //! Beryl identifiers, or Crystals, are encoded into 64 bits as follows:
-//! - **Generator ID**: 12-bit unsigned integer identifying the Crystal's generator. Further segmentation is
+//! - **Generator ID**: 14-bit unsigned integer identifying the Crystal's generator. Further segmentation is
 //! left to the application, as conflicts will not occur unless the scheme is changed unevenly over
 //! less than a millisecond.
-//! - **Generator Counter**: 10-bit unsigned integer incremented for every Crystal generated and
+//! - **Generator Counter**: 8-bit unsigned integer incremented for every Crystal generated and
 //! reset each millisecond.
 //! - **Timestamp**: 42-bit unsigned integer number of milliseconds since an application-defined
 //! epoch.
@@ -58,9 +58,7 @@ impl From<BerylError> for std::io::Error {
 /// Wrapper struct over a [`u64`] which provides functions to destructure a Crystal
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Crystal {
-    crystal: u64,
-}
+pub struct Crystal(u64);
 
 impl Crystal {
     /// Create a Crystal from its raw parts
@@ -74,10 +72,10 @@ impl Crystal {
     /// ```
     pub fn from_parts(generator: u16, counter: u16, timestamp: u64) -> Result<Self, BerylError> {
         Ok(Self::from_parts_unchecked(
-            (generator <= 0xFFF)
+            (generator <= 0x3FFF)
                 .then(|| generator)
                 .ok_or(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))?,
-            (counter <= 0x3FF)
+            (counter <= 0xFF)
                 .then(|| counter)
                 .ok_or(BerylError::PartOutOfBounds(CrystalPart::Counter))?,
             (timestamp <= 0x3FFFFFFFFFF)
@@ -89,23 +87,23 @@ impl Crystal {
     /// Like [`Crystal::from_parts`], but doesn't ensure each part is correctly sized
     pub fn from_parts_unchecked(generator: u16, counter: u16, timestamp: u64) -> Self {
         Self {
-            crystal: ((generator as u64) << 52) | ((counter as u64) << 42) | timestamp,
+            0: ((generator as u64) << 50) | ((counter as u64) << 42) | timestamp,
         }
     }
 
     /// Returns the ID of the Crystal's generator
     pub fn generator(&self) -> u16 {
-        (self.crystal >> 52).try_into().unwrap()
+        (self.0 >> 50).try_into().unwrap()
     }
 
     /// Returns the Crystal's counter
     pub fn counter(&self) -> u16 {
-        ((self.crystal & 0xFFC0000000000) >> 42).try_into().unwrap()
+        ((self.0 & 0x3FC0000000000) >> 42).try_into().unwrap()
     }
 
     /// Returns the timestamp of the Crystal's creation
     pub fn timestamp(&self) -> u64 {
-        self.crystal & 0x3FFFFFFFFFF
+        self.0 & 0x3FFFFFFFFFF
     }
 }
 
@@ -120,14 +118,14 @@ impl fmt::Debug for Crystal {
 }
 
 impl From<u64> for Crystal {
-    fn from(raw: u64) -> Self {
-        Self { crystal: raw }
+    fn from(bits: u64) -> Self {
+        Self { 0: bits }
     }
 }
 
 impl From<Crystal> for u64 {
     fn from(cry: Crystal) -> Self {
-        cry.crystal
+        cry.0
     }
 }
 
@@ -137,14 +135,14 @@ impl From<Crystal> for u64 {
 impl From<i64> for Crystal {
     fn from(raw: i64) -> Self {
         Self {
-            crystal: unsafe { std::mem::transmute(raw) },
+            0: unsafe { std::mem::transmute(raw) },
         }
     }
 }
 
 impl From<Crystal> for i64 {
     fn from(cry: Crystal) -> Self {
-        unsafe { std::mem::transmute(cry.crystal) }
+        unsafe { std::mem::transmute(cry.0) }
     }
 }
 
@@ -273,7 +271,7 @@ mod tests {
         fn converts_i64() {
             assert_eq!(i64::from(Crystal::from_parts(0, 0, 0).unwrap()), 0i64);
             assert_eq!(
-                i64::from(Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF).unwrap()),
+                i64::from(Crystal::from_parts(0x3FFF, 0xFF, 0x3FFFFFFFFFF).unwrap()),
                 -1i64
             );
 
@@ -295,11 +293,11 @@ mod tests {
             // Should be out of bounds
             Crystal::from_parts(u16::MAX, u16::MAX, u64::MAX).unwrap_err();
             assert_eq!(
-                Crystal::from_parts(0x1000, 0, 0),
+                Crystal::from_parts(0x4000, 0, 0),
                 Err(BerylError::PartOutOfBounds(CrystalPart::GeneratorId))
             );
             assert_eq!(
-                Crystal::from_parts(0, 0x400, 0),
+                Crystal::from_parts(0, 0x100, 0),
                 Err(BerylError::PartOutOfBounds(CrystalPart::Counter))
             );
             assert_eq!(
@@ -310,11 +308,11 @@ mod tests {
             // Should not be out of bounds
             assert_eq!(
                 Crystal::from_parts(0, 0, 0),
-                Ok(Crystal { crystal: u64::MIN })
+                Ok(Crystal { 0: u64::MIN })
             );
             assert_eq!(
-                Crystal::from_parts(0xFFF, 0x3FF, 0x3FFFFFFFFFF),
-                Ok(Crystal { crystal: u64::MAX })
+                Crystal::from_parts(0x3FFF, 0xFF, 0x3FFFFFFFFFF),
+                Ok(Crystal { 0: u64::MAX })
             );
         }
     }

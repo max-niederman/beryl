@@ -11,11 +11,11 @@ Beryl is a format for unique identifiers. This crate implements utilities for ge
 
 ## Crystals
 Beryl identifiers, or Crystals, are encoded into 64 bits as follows:
-- **Generator ID**: 12-bit unsigned integer identifying the Crystal's generator. Further segmentation is
+- **Generator ID**: 14-bit unsigned integer identifying the Crystal's generator. Further segmentation is
 left to the application, as conflicts will not occur unless the scheme is changed unevenly over
 less than a millisecond.
-- **Generator Counter**: 10-bit unsigned integer incremented for every Crystal generated and
-reset each millisecond.
+- **Generator Counter**: 8-bit unsigned integer incremented for every Crystal generated and
+reset each millisecond. This allows each generator to operate at up to 256,000,000 Crystals/sec.
 - **Timestamp**: 42-bit unsigned integer number of milliseconds since an application-defined
 epoch.
 
