@@ -1,7 +1,7 @@
 [package]
 name = "beryl"
 description = "64-bit unique identifier format"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 readme = "README.md"
 repository = "https://github.com/max-niederman/beryl.git"
 homepage = "https://github.com/max-niederman/beryl"
