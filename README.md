@@ -15,7 +15,7 @@ Beryl identifiers, or Crystals, are encoded into 64 bits as follows:
 left to the application, as conflicts will not occur unless the scheme is changed unevenly over
 less than a millisecond.
 - **Generator Counter**: 8-bit unsigned integer incremented for every Crystal generated and
-reset each millisecond. This allows each generator to operate at up to 256,000,000 Crystals/sec.
+reset each millisecond. This allows each generator to operate at up to 256,000 Crystals/sec.
 - **Timestamp**: 42-bit unsigned integer number of milliseconds since an application-defined
 epoch.
 
