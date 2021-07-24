@@ -25,6 +25,7 @@ impl Crystal {
     /// let c = Crystal::from_parts(42, 42, 42).unwrap();
     /// println!("{:?}", c);
     /// ```
+    #[inline]
     pub fn from_parts(generator: u16, counter: u16, timestamp: u64) -> Result<Self, BerylError> {
         Ok(Self::from_parts_unchecked(
             (generator <= 0x3FFF)
@@ -40,6 +41,7 @@ impl Crystal {
     }
 
     /// Like [`Crystal::from_parts`], but doesn't ensure each part is correctly sized
+    #[inline]
     pub fn from_parts_unchecked(generator: u16, counter: u16, timestamp: u64) -> Self {
         Self {
             0: ((generator as u64) << 50) | ((counter as u64) << 42) | timestamp,
@@ -47,16 +49,19 @@ impl Crystal {
     }
 
     /// Returns the ID of the Crystal's generator
+    #[inline]
     pub fn generator(&self) -> u16 {
         (self.0 >> 50).try_into().unwrap()
     }
 
     /// Returns the Crystal's counter
+    #[inline]
     pub fn counter(&self) -> u16 {
         ((self.0 & 0x3FC0000000000) >> 42).try_into().unwrap()
     }
 
     /// Returns the timestamp of the Crystal's creation
+    #[inline]
     pub fn timestamp(&self) -> u64 {
         self.0 & 0x3FFFFFFFFFF
     }
@@ -73,12 +78,14 @@ impl fmt::Debug for Crystal {
 }
 
 impl From<u64> for Crystal {
+    #[inline]
     fn from(bits: u64) -> Self {
         Self { 0: bits }
     }
 }
 
 impl From<Crystal> for u64 {
+    #[inline]
     fn from(cry: Crystal) -> Self {
         cry.0
     }
@@ -88,6 +95,7 @@ impl From<Crystal> for u64 {
 /// and from [`i64`]. This is achieved using [`std::mem::transmute`], but is safe because we're
 /// using [`u64`] to represent raw bits anyway.
 impl From<i64> for Crystal {
+    #[inline]
     fn from(raw: i64) -> Self {
         Self {
             0: unsafe { std::mem::transmute(raw) },
@@ -96,6 +104,7 @@ impl From<i64> for Crystal {
 }
 
 impl From<Crystal> for i64 {
+    #[inline]
     fn from(cry: Crystal) -> Self {
         unsafe { std::mem::transmute(cry.0) }
     }
